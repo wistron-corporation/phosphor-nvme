@@ -49,10 +49,9 @@ class Nvme
     struct NVMeConfig
     {
         std::string index;
-        uint8_t index2;
         uint8_t busID;
-        uint8_t address;
-        uint8_t channel;
+        uint8_t address;           /* PCA9545 address */
+        uint8_t channel;           /* PCA9545 switch channel */
         std::string faultLedGroupPath;
         uint8_t presentPin;
         uint8_t pwrGoodPin;

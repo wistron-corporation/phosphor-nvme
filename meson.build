@@ -7,7 +7,7 @@ project(
     ],
 )
 
-# Setting of build-type depends on platform.
+# Set build-type according to platform.
 platform = get_option('platform')
 
 platform_src = []
