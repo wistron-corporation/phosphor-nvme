@@ -10,12 +10,11 @@
 #include <sdbusplus/message.hpp>
 #include <sstream>
 #include <string>
-#include <xyz/openbmc_project/Led/Physical/server.hpp>
 
 #include "i2c.h"
 #define MONITOR_INTERVAL_SECONDS 1
 #define NVME_SSD_SLAVE_ADDRESS 0x6a
-#define NOWARNING_STRING "ff"
+#define PRESENT 1
 
 static constexpr auto configFile = "/etc/nvme/mihawk_config.json";
 static constexpr auto delay = std::chrono::milliseconds{100};
@@ -344,7 +343,7 @@ We can tell what kind of device is connected by reading driverPresent and driver
 
 drivePresent  | driveIfdet  | Type
 -------------------------------------------
-      0	      |      0      | SAS/SATA HDD
+      0       |      0      | SAS/SATA HDD
 -------------------------------------------
       1       |      0      | NVMe SSD
 -------------------------------------------
@@ -445,7 +444,7 @@ void Nvme::read()
 
         int a = std::stoi(config.index);
 
-        if (getNVMePresent(a) == 1)
+        if (getNVMePresent(a) == PRESENT)
         {
             // Drive status is good, update value or create d-bus and update
             // value.
