@@ -90,7 +90,8 @@ class Nvme
     void run();
 
     /** @brief Get GPIO value of nvme by sysfs */
-    std::string getGPIOValueOfNvme(const std::string& fullPath);
+    int getGPIOValueOfNvme(const std::string& fullPath, std::string Index,
+                           std::string platform);
     /** @brief Map of the object NvmeSSD */
     std::unordered_map<std::string, std::shared_ptr<phosphor::nvme::NvmeSSD>>
         nvmes;
