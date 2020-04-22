@@ -36,7 +36,7 @@ static constexpr int SERIALNUMBER_START_INDEX = 3;
 static constexpr int SERIALNUMBER_END_INDEX = 23;
 
 static constexpr const int TEMPERATURE_SENSOR_FAILURE = 0x81;
-enum getstatus
+enum getStatus
 {
     PRESENT,
     PGOOD,
@@ -448,12 +448,14 @@ int getMihawkPresent(std::string nvmeDriverIndex)
     char filename[20];
     auto bus = phosphor::smbus::Smbus();
 
-    if (index > 24 - 1)
+    // Mihawk has 24 nvme
+    if (index >= 24)
     {
         std::cerr << "nvmeDriverIndex over restriction\n";
         return ERROR;
     }
 
+    // Open CPLD device on bus 12
     int fd = bus.openI2cDev(12, filename, sizeof(filename), 0);
     if (fd < 0)
     {
@@ -461,6 +463,7 @@ int getMihawkPresent(std::string nvmeDriverIndex)
         return ERROR;
     }
 
+    // Switch mux
     if (ioctl(fd, I2C_SLAVE_FORCE, 0x70) < 0)
     {
         std::cerr << "Failed to switch mux\n";
@@ -475,7 +478,7 @@ int getMihawkPresent(std::string nvmeDriverIndex)
     }
 
     // Read CPLD_register byte for checking NVMe BP.
-    checkBp = i2c_smbus_read_byte_data(fd, 0x01);
+    checkBp = i2c_smbus_read_byte_data(fd, 1);
 
     // Confirm whether to use NVME BP
     if ((checkBp & 1) && !((checkBp >> 1) & 1) && !((checkBp >> 2) & 1))
@@ -498,8 +501,8 @@ exit_getNvmePresent:
     return val;
 }
 
-int Nvme::getGPIOValueOfNvme(const std::string& fullPath, std::string Index,
-                             std::string platform)
+int Nvme::getStatusOfNvme(const std::string& fullPath, std::string Index,
+                          std::string platform)
 {
     std::string val;
     std::ifstream ifs;
@@ -568,7 +571,6 @@ void Nvme::init()
 /** @brief Monitor NVMe drives every one second  */
 void Nvme::read()
 {
-    int mihawkPresent = 0;
     std::string devPresentPath;
     std::string devPwrGoodPath;
     std::string inventoryPath;
@@ -588,13 +590,13 @@ void Nvme::read()
 
         auto iter = nvmes.find(config.index);
 
-        if (getGPIOValueOfNvme(devPresentPath, config.index, config.platform) ==
+        if (getStatusOfNvme(devPresentPath, config.index, config.platform) ==
             PRESENT)
         {
             // Drive status is good, update value or create d-bus and update
             // value.
-            if (getGPIOValueOfNvme(devPresentPath, config.index,
-                                   config.platform) == PGOOD ||
+            if (getStatusOfNvme(devPresentPath, config.index,
+                                config.platform) == PGOOD ||
                 config.platform == "mihawk")
             {
                 // get NVMe information through i2c by busID.
