@@ -502,6 +502,67 @@ void Nvme::readNvmeData(NVMeConfig& config)
     }
 }
 
+/*This function intends to test existence of NVMe driver via I2C.
+We can tell what kind of device is connected by reading driverPresent and
+driverIfdet.
+In this function, treat pwrGoodPin as cpldId.
+drivePresent  | driveIfdet  | Type
+-------------------------------------------
+      0       |      0      | SAS/SATA HDD
+-------------------------------------------
+      1       |      0      | NVMe SSD
+-------------------------------------------
+      1       |      1      | NC
+*/
+int getMihawkPresent(std::string nvmeDriverIndex, int cpldId)
+{
+    int val = 0;
+    int index = std::stoi(nvmeDriverIndex);
+    unsigned char checkBp = 0;
+    unsigned char present = 0;
+    unsigned char ifdet = 0;
+    unsigned char drivePresent = 0;
+    unsigned char driveIfdet = 0;
+    unsigned char muxChannel = index % 8;
+    auto smbus = phosphor::smbus::Smbus();
+
+    // Mihawk has 24 nvme
+    if (index >= 24)
+    {
+        std::cerr << "nvmeDriverIndex over restriction\n";
+        return 0;
+    }
+
+    auto init = smbus.smbusInit(cpldId);
+    if (init == -1)
+    {
+        std::cerr << "smbusInit fail!" << std::endl;
+        return 0;
+    }
+
+    // Read CPLD_register byte for checking NVMe BP.
+    checkBp = smbus.GetSmbusCmdByte(cpldId, 0x40, 0x01);
+
+    // Confirm whether to use NVME BP
+    if ((checkBp & 1) && !((checkBp >> 1) & 1) && !((checkBp >> 2) & 1))
+    {
+        present = smbus.GetSmbusCmdByte(cpldId, 0x40, 0x07);
+        ifdet = smbus.GetSmbusCmdByte(cpldId, 0x40, 0x09);
+
+        drivePresent = (present >> muxChannel) & 0x01;
+        driveIfdet = (ifdet >> muxChannel) & 0x01;
+
+        // Check NVMe whether is present.
+        if ((drivePresent == 1) && (driveIfdet == 0))
+        {
+            val = 1;
+        }
+    }
+
+    smbus.smbusClose(cpldId);
+    return val;
+}
+
 /** @brief Monitor NVMe drives every one second  */
 void Nvme::read()
 {
@@ -575,6 +636,14 @@ void Nvme::read()
                     return;
                 }
             }
+        }
+
+        else if (getMihawkPresent(config.index, config.pwrGoodPin) != 1)
+        {
+            nvmeData = NVMeData();
+            setNvmeInventoryProperties(false, nvmeData, inventoryPath);
+            nvmes.erase(config.index);
+            continue;
         }
         // Drive status is good, update value or create d-bus and update
         // value.
