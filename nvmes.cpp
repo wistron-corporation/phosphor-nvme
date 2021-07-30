@@ -1,11 +1,12 @@
 #include "nvmes.hpp"
+#include <string>
 
 namespace phosphor
 {
 namespace nvme
 {
 
-void NvmeSSD::checkSensorThreshold()
+/*void NvmeSSD::checkSensorThreshold()
 {
     int8_t value = ValueIface::value();
     int8_t criticalHigh = CriticalInterface::criticalHigh();
@@ -35,11 +36,12 @@ void NvmeSSD::setSensorThreshold(int8_t criticalHigh, int8_t criticalLow,
 
     ValueIface::maxValue(maxValue);
     ValueIface::minValue(minValue);
-}
+}*/
 
-void NvmeSSD::setSensorValueToDbus(const int8_t value)
+void NvmeSSD::setSensorValueToDbus(const std::string status)
 {
-    ValueIface::value(value);
+    //ValueIface::value(value);
+    StatusIface::status(status);
 }
 
 } // namespace nvme

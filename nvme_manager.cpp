@@ -541,24 +541,26 @@ void Nvme::readNvmeData(NVMeConfig& config)
         nvmes.emplace(config.index, nvmeSSD);
 
         setNvmeInventoryProperties(true, nvmeData, inventoryPath);
-        nvmeSSD->setSensorValueToDbus(nvmeData.sensorValue);
+        const std::string tmp("0x10");
+        nvmeSSD->setSensorValueToDbus(tmp);
         if (nvmeData.wcTemp != 0)
         {
             config.criticalHigh = nvmeData.wcTemp;
             config.warningHigh = nvmeData.wcTemp;
         }
-        nvmeSSD->setSensorThreshold(config.criticalHigh, config.criticalLow,
-                                    config.maxValue, config.minValue,
-                                    config.warningHigh, config.warningLow);
+        //nvmeSSD->setSensorThreshold(config.criticalHigh, config.criticalLow,
+        //                            config.maxValue, config.minValue,
+        //                            config.warningHigh, config.warningLow);
 
-        nvmeSSD->checkSensorThreshold();
+        //nvmeSSD->checkSensorThreshold();
         setLEDsStatus(config, success, nvmeData);
     }
     else
     {
+        const std::string tmp("0x10");
         setNvmeInventoryProperties(true, nvmeData, inventoryPath);
-        iter->second->setSensorValueToDbus(nvmeData.sensorValue);
-        iter->second->checkSensorThreshold();
+        iter->second->setSensorValueToDbus(tmp);
+        //iter->second->checkSensorThreshold();
         setLEDsStatus(config, success, nvmeData);
     }
 }

@@ -10,6 +10,7 @@
 #include <xyz/openbmc_project/Sensor/Threshold/Critical/server.hpp>
 #include <xyz/openbmc_project/Sensor/Threshold/Warning/server.hpp>
 #include <xyz/openbmc_project/Sensor/Value/server.hpp>
+#include <xyz/openbmc_project/Sensor/Status/server.hpp>
 
 namespace phosphor
 {
@@ -17,6 +18,7 @@ namespace nvme
 {
 
 using ValueIface = sdbusplus::xyz::openbmc_project::Sensor::server::Value;
+using StatusIface = sdbusplus::xyz::openbmc_project::Sensor::server::Status;
 
 using CriticalInterface =
     sdbusplus::xyz::openbmc_project::Sensor::Threshold::server::Critical;
@@ -25,8 +27,7 @@ using WarningInterface =
     sdbusplus::xyz::openbmc_project::Sensor::Threshold::server::Warning;
 
 using NvmeIfaces =
-    sdbusplus::server::object::object<ValueIface, CriticalInterface,
-                                      WarningInterface>;
+    sdbusplus::server::object::object<StatusIface>;
 
 class NvmeSSD : public NvmeIfaces
 {
@@ -49,13 +50,13 @@ class NvmeSSD : public NvmeIfaces
     }
 
     /** @brief Set sensor value temperature to nvme D-bus  */
-    void setSensorValueToDbus(const int8_t value);
+    void setSensorValueToDbus(const std::string status);
     /** @brief Check if sensor value higher or lower threshold */
-    void checkSensorThreshold();
+    //void checkSensorThreshold();
     /** @brief Set Sensor Threshold to D-bus at beginning */
-    void setSensorThreshold(int8_t criticalHigh, int8_t criticalLow,
-                            int8_t maxValue, int8_t minValue,
-                            int8_t warningHigh, int8_t warningLow);
+    //void setSensorThreshold(int8_t criticalHigh, int8_t criticalLow,
+    //                        int8_t maxValue, int8_t minValue,
+    //                        int8_t warningHigh, int8_t warningLow);
 
   private:
     sdbusplus::bus::bus& bus;
